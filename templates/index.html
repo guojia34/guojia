@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能童话绘画故事</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f7e8d0;  /* 米黄色背景 */
+            position: relative;
+            overflow-x: hidden;
+        }
+        /* 添加祥云装饰 */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50" viewBox="0 0 100 50"><path d="M10,25 Q25,0 40,25 Q55,45 70,25 Q85,5 90,25" fill="none" stroke="%23d4a017" stroke-width="2" opacity="0.1"/></svg>');
+            background-repeat: repeat;
+            pointer-events: none;
+            z-index: -1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #8b4513;  /* 深褐色 */
+            font-size: 2em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            position: relative;
+            font-family: "STKaiti", "楷体", serif;  /* 使用楷体增加传统韵味 */
+        }
+        h1::before, h1::after {
+            content: "❖";  /* 传统装饰符号 */
+            color: #d4a017;  /* 金色 */
+            margin: 0 15px;
+            font-size: 0.8em;
+        }
+        h2 {
+            font-family: "STKaiti", "楷体", serif;
+            color: #8b4513;
+            font-weight: normal;
+            font-size: 1.5em;
+        }
+        /* 卷轴样式容器 */
+        #storyContainer {
+            margin: 0;
+            padding: 30px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 0;
+            position: relative;
+            border: none;
+        }
+        /* 卷轴顶部装饰 */
+        #storyContainer::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: linear-gradient(to right,
+                #d4a017 0%,
+                #d4a017 5px,
+                #f7e8d0 5px,
+                #f7e8d0 calc(100% - 5px),
+                #d4a017 calc(100% - 5px),
+                #d4a017 100%
+            );
+            border-radius: 3px 3px 0 0;
+            box-shadow: 0 2px 5px rgba(139, 69, 19, 0.2);
+        }
+        /* 卷轴底部装饰 */
+        #storyContainer::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: linear-gradient(to right,
+                #d4a017 0%,
+                #d4a017 5px,
+                #f7e8d0 5px,
+                #f7e8d0 calc(100% - 5px),
+                #d4a017 calc(100% - 5px),
+                #d4a017 100%
+            );
+            border-radius: 0 0 3px 3px;
+            box-shadow: 0 -2px 5px rgba(139, 69, 19, 0.2);
+        }
+        /* 卷轴内容区域 */
+        .scroll-content {
+            position: relative;
+            background-color: #fff9f0;
+            padding: 20px;
+            border-left: 5px solid #d4a017;
+            border-right: 5px solid #d4a017;
+            min-height: 400px;
+        }
+        .main-content {
+            display: flex;
+            width: 100%;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .input-panel {
+            flex: 0 0 25%;
+            order: 2;
+        }
+        .story-panel {
+            flex: 0 0 75%;  /* 占据四分之三宽度 */
+            order: 1;  /* 放在左边 */
+            min-width: 0;  /* 防止内容溢出 */
+        }
+        .input-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .method {
+            width: 100%;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(139, 69, 19, 0.1);
+            border: 1px solid #d4a017;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        .method h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 16px;  /* 减小标题字体 */
+            color: #8b4513;
+            border-bottom: 1px solid rgba(212, 160, 23, 0.3);
+            padding-bottom: 8px;
+        }
+        #videoContainer {
+            margin: 10px 0;
+            border: 3px solid #4CAF50;
+            border-radius: 10px;
+            overflow: hidden;
+            max-height: 200px;  /* 进一步减小高度 */
+        }
+        #video {
+            width: 100%;
+            height: auto;
+            max-height: 200px;
+            object-fit: cover;  /* 保持比例填充 */
+        }
+        button {
+            background-color: #d4a017;  /* 金色按钮 */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background-color: #b38b15;
+            transform: translateY(-2px);
+        }
+        #status {
+            margin: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .upload-container {
+            margin: 10px 0;  /* 减小边距 */
+        }
+        #imageUpload {
+            margin-bottom: 10px;
+        }
+        #previewContainer {
+            margin-top: 10px;
+            text-align: center;
+            max-height: 200px;
+            overflow: hidden;
+        }
+        #imagePreview {
+            max-width: 100%;
+            height: auto;
+        }
+        .story-ending-options {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .control-btn {
+            background-color: #6c757d;
+            margin: 10px;
+        }
+        
+        .control-btn:hover {
+            background-color: #5a6268;
+        }
+        
+        .camera-controls {
+            margin-bottom: 10px;
+        }
+        
+        #toggleCamera {
+            background-color: #d4a017;
+        }
+        
+        #toggleCamera:hover {
+            background-color: #b38b15;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        button:disabled:hover {
+            background-color: #cccccc;
+        }
+        
+        .story-entry {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            border: 1px solid #d4a017;
+            position: relative;
+            animation: unfold 1s ease-out;
+            transform-origin: top center;
+        }
+        @keyframes unfold {
+            from {
+                transform: scaleY(0);
+                opacity: 0;
+            }
+            to {
+                transform: scaleY(1);
+                opacity: 1;
+            }
+        }
+        .story-entry::before {
+            content: "";
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 1px solid rgba(212, 160, 23, 0.3);
+            border-radius: 5px;
+            pointer-events: none;
+        }
+        .story-image {
+            max-width: 200px;
+            margin: 10px 0;
+            border: 2px solid #d4a017;
+            border-radius: 5px;
+        }
+        .story-text {
+            margin-top: 10px;
+            line-height: 1.5;
+            position: relative;
+            padding-right: 40px;  /* 为语音按钮留出空间 */
+        }
+        .story-header {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #d4a017;
+            padding-bottom: 10px;
+            position: relative;
+        }
+        /* 添加装饰性云纹 */
+        .story-header::after {
+            content: "";
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 20px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="20" viewBox="0 0 100 20"><path d="M0,10 Q25,0 50,10 Q75,20 100,10" fill="none" stroke="%23d4a017" stroke-width="1" opacity="0.3"/></svg>');
+            background-repeat: no-repeat;
+            pointer-events: none;
+        }
+        .story-status {
+            color: #8b4513;  /* 深褐色 */
+            font-size: 16px;
+            font-style: italic;
+            flex-shrink: 0;  /* 防止文字换行 */
+        }
+        .speak-btn {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            margin: 0;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+        .speak-btn:hover {
+            opacity: 1;
+            background: none;
+            transform: translateY(-50%);
+        }
+        .speak-icon {
+            font-size: 20px;
+            color: #8b4513;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>丹青奇缘 稚笔生花</h1>
+        <button id="newStoryBtn" class="control-btn">开始新故事</button>
+        <div class="main-content">
+            <div class="story-panel">
+                <div id="storyContainer">
+                    <div class="scroll-content">
+                        <div class="story-header">
+                            <h2>我们的画卷慢慢展开...</h2>
+                            <div id="status" class="story-status"></div>
+                        </div>
+                        <div id="storyHistory"></div>
+                        <div id="storyContent" class="story-controls"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="input-panel">
+                <div class="input-methods">
+                    <div class="method camera-method">
+                        <h3>方式一：摄像头拍摄</h3>
+                        <div class="camera-controls">
+                            <button id="toggleCamera" class="control-btn">开启摄像头</button>
+                        </div>
+                        <div id="videoContainer">
+                            <video id="video" autoplay></video>
+                        </div>
+                        <button id="captureBtn" disabled>捕捉画作</button>
+                    </div>
+                    
+                    <div class="method upload-method">
+                        <h3>方式二：上传图片</h3>
+                        <div class="upload-container">
+                            <input type="file" id="imageUpload" accept="image/*">
+                            <button id="uploadBtn">上传画作</button>
+                        </div>
+                        <div id="previewContainer" style="display: none;">
+                            <img id="imagePreview" style="max-width: 100%; height: auto;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html> 
